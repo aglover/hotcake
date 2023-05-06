@@ -1,0 +1,20 @@
+ElasticSearch resources
+ * https://logz.io/blog/elasticsearch-tutorial/
+ * w/docker: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
+ * https://levelup.gitconnected.com/how-to-run-elasticsearch-8-on-docker-for-local-development-401fd3fff829
+
+
+
+ ES queries
+
+ result = client.search(index: "test_index", body: {query: {match: {_id: "ZQYa6IcBpXEdbSpH8h8"}}})
+
+Tags need a keyword mapping
+ client = Elasticsearch::Client.new(log: true, trace: true)
+ client.indices.create(index:INDEX, body: { mappings: {properties: { tags: { type: "keyword" } }}})
+
+
+ docker
+ * docker start es01
+ * docker stop es01
+ * docker ps -a
