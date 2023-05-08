@@ -2,7 +2,7 @@ ENV['APP_ENV'] = 'test'
 
 require 'rspec'
 require 'rack/test'
-require File.expand_path(File.dirname(__FILE__) + '/../lib/tag_app')
+require File.expand_path(File.dirname(__FILE__) + '/../../lib/tag_app')
 
 RSpec.describe "Simple Hello World" do
     include Rack::Test::Methods

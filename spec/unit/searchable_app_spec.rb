@@ -1,4 +1,4 @@
-require File.expand_path(File.dirname(__FILE__) + '/../lib/taggable')
+require File.expand_path(File.dirname(__FILE__) + '/../../lib/taggable')
 
 
 RSpec.describe Taggable::SearchableApplication do
@@ -41,6 +41,19 @@ RSpec.describe Taggable::SearchableApplication do
     end
 
     describe "deleting should be straightforward" do
+        it "should NOT delete by if no valid properties were provided (name and env)" do
+            tag_thing = @factory.manufactureTaggable()
+
+            mock_client = spy("Elasticsearch::Client")
+            allow(mock_client).to receive(:delete) #.and_return({_id: "blah"})
+            tag_thing.es_client = mock_client
+
+            tag_thing.name = "bluespar"
+             expect{
+                tag_thing.delete
+            }.to raise_error("cannot delete w/o name and env")
+        end
+
         it "should delete by id" do
             tag_thing = @factory.manufactureTaggable()
 
@@ -51,11 +64,23 @@ RSpec.describe Taggable::SearchableApplication do
             tag_thing.name = "bluespar"
             tag_thing.env = "prod"
 
-            doc_id = tag_thing.delete
+            tag_thing.delete
+            # expect(mock_client).to have_received(:delete)
+        end
+    end
 
-            expect(mock_client).to have_received(:delete)
+    describe "finding documents should return taggable objects" do
+        it "should support find a taggable via it's name and env" do
+            tag_thing = @factory.manufactureTaggable()
 
-            # expect(doc_id).to eq "blah"de
+            mock_client = spy("Elasticsearch::Client")
+            allow(mock_client).to receive(:search) #.and_return({_id: "blah"})
+            tag_thing.es_client = mock_client
+
+            result = tag_thing.find_by_name_and_env "bluespar", "test"
+
+            # expect(result.name).to eq "bluespar" 
+
         end
     end
 

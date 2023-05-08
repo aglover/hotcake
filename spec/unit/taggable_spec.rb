@@ -1,6 +1,6 @@
 
 require 'json'
-require File.expand_path(File.dirname(__FILE__) + '/../lib/taggable')
+require File.expand_path(File.dirname(__FILE__) + '/../../lib/taggable')
 
 
 RSpec.describe Taggable::Application do
@@ -66,8 +66,8 @@ RSpec.describe Taggable::Application do
         parsed = JSON.parse(a_json_string)
         expect(parsed["application"]).to eq "bluespar"
         expect(parsed["environment"]).to eq "prod"
-        expect(parsed["item_type"]).to eq "cluster"
-        expect(parsed["item_name"]).to eq "MAIN"
+        expect(parsed["infra_type"]).to eq "cluster"
+        expect(parsed["infra_name"]).to eq "MAIN"
         expect(parsed["properties"].size).to eq 1
         expect(parsed["properties"]["stack"]).to eq "TEST"
         expect(parsed["tags"].size).to eq 2

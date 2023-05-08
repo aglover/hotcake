@@ -1,6 +1,6 @@
 require 'json'
 require 'elasticsearch'
-require File.expand_path(File.dirname(__FILE__) + '/../lib/taggable')
+require File.expand_path(File.dirname(__FILE__) + '/../../lib/taggable')
 
 RSpec.describe Taggable, "working w/ES" do
 
@@ -18,10 +18,17 @@ RSpec.describe Taggable, "working w/ES" do
                     }
                 }
             )
-            a_cluser = Taggable.new("bluespar", "test", "cluster", "MAIN-B")  
-            a_cluser.tags = ["VUL-1", "FIT"]   
-            a_cluser.properties = {owner: "GPS", email: "gps@acme.corp"}       
-            @client.index(index: INDEX, body: a_cluser.as_hash)
+
+            factory = Taggable::TaggableFactory.new()
+            a_cluster = factory.manufactureTaggable()
+            a_cluster.name = "bluespar"
+            a_cluster.env = "test"
+            a_cluster.infra_type = "cluster"
+            a_cluster.infra_name = "MAIN-B"
+
+            a_cluster.tags = ["VUL-1", "FIT"]   
+            a_cluster.props = {owner: "GPS", email: "gps@acme.corp"}       
+            @client.index(index: INDEX, body: a_cluster.as_hash)
             sleep 2 #needed to let ES index the above doc
         }.not_to raise_error
     end
@@ -32,13 +39,25 @@ RSpec.describe Taggable, "working w/ES" do
 
     describe "connecting and indexing a document" do
         it "as document works but it might be more efficient to do hash" do
-            tagged_cluser = Taggable.new("bluespar", "SEG", "cluster", "MAIN-SEG")            
+            factory = Taggable::TaggableFactory.new()
+            tagged_cluser = factory.manufactureTaggable()
+            tagged_cluser.name = "bluespar"
+            tagged_cluser.env = "SEG"
+            tagged_cluser.infra_type = "cluster"
+            tagged_cluser.infra_name = "MAIN-SEG"
+
             response = @client.index(index: INDEX, body: tagged_cluser.as_document)
             expect(response['result']).to eq 'created'
         end
 
         it "must be a hash to index" do
-            tagged_cluser = Taggable.new("spinnaker", "prod", "cluster", "MAIN")            
+            factory = Taggable::TaggableFactory.new()
+            tagged_cluser = factory.manufactureTaggable()
+            tagged_cluser.name = "spinnaker"
+            tagged_cluser.env = "prod"
+            tagged_cluser.infra_type = "cluster"
+            tagged_cluser.infra_name = "MAIN"
+
             response = @client.index(index: INDEX, body: tagged_cluser.as_hash)
             expect(response['result']).to eq 'created'
         end
@@ -51,7 +70,7 @@ RSpec.describe Taggable, "working w/ES" do
                 body: { 
                     query: { 
                         term: {
-                            item: "cluster"
+                            infra_type: "cluster"
                         }
                     }
                 }
@@ -60,7 +79,7 @@ RSpec.describe Taggable, "working w/ES" do
             expect(search['hits']['hits'].size).to eq 1
             for tmp_res in search['hits']['hits'] do
                 a_doc = tmp_res['_source']
-                expect(a_doc['name']).to eq "MAIN-B"
+                expect(a_doc['infra_name']).to eq "MAIN-B"
                 expect(a_doc['application']).to eq "bluespar"
             end
         end
@@ -71,7 +90,7 @@ RSpec.describe Taggable, "working w/ES" do
                     query: { 
                         bool: {
                             must: [
-                                {match: { item: "cluster" }},
+                                {match: { infra_type: "cluster" }},
                                 {match: { application: "bluespar" }}
                             ]
                         }
@@ -82,7 +101,7 @@ RSpec.describe Taggable, "working w/ES" do
             expect(search['hits']['hits'].size).to eq 1
             for tmp_res in search['hits']['hits'] do
                 a_doc = tmp_res['_source']
-                expect(a_doc['name']).to eq "MAIN-B"
+                expect(a_doc['infra_name']).to eq "MAIN-B"
                 expect(a_doc['application']).to eq "bluespar"
             end
         end
@@ -100,7 +119,7 @@ RSpec.describe Taggable, "working w/ES" do
             expect(search['hits']['hits'].size).to eq 1
             for tmp_res in search['hits']['hits'] do
                 a_doc = tmp_res['_source']
-                expect(a_doc['name']).to eq "MAIN-B"
+                expect(a_doc['infra_name']).to eq "MAIN-B"
             end
         end
 
@@ -119,15 +138,22 @@ RSpec.describe Taggable, "working w/ES" do
             expect(search['hits']['hits'].size).to eq 1
             for tmp_res in search['hits']['hits'] do
                 a_doc = tmp_res['_source']
-                expect(a_doc['name']).to eq "MAIN-B"
+                expect(a_doc['infra_name']).to eq "MAIN-B"
             end
         end
 
         it "searching by tags should result in two" do
-            tagged_cluser = Taggable.new("bluespar", "int", "cluster", "MAIN")  
+
+            factory = Taggable::TaggableFactory.new()
+            tagged_cluster = factory.manufactureTaggable()
+            tagged_cluster.name = "bluespar"
+            tagged_cluster.env = "int"
+            tagged_cluster.infra_type = "cluster"
+            tagged_cluster.infra_name = "MAIN"
+
             tags = ["test", "MPS"]
-            tagged_cluser.tags = tags          
-            response = @client.index(index: INDEX, body: tagged_cluser.as_hash)
+            tagged_cluster.tags = tags          
+            response = @client.index(index: INDEX, body:   tagged_cluster.as_hash)
             expect(response['result']).to eq 'created'
             sleep 1
 
@@ -166,7 +192,7 @@ RSpec.describe Taggable, "working w/ES" do
             )
             expect(search['hits']['hits'].size).to eq 1
             a_doc = search['hits']['hits'][0]['_source']
-            expect(a_doc['name']).to eq "MAIN-B"
+            expect(a_doc['infra_name']).to eq "MAIN-B"
             expect(search['hits']['hits'][0]['_id'].nil?).to eq false
             document_id = search['hits']['hits'][0]['_id']            
             # find by id and update it w/new tags
@@ -212,7 +238,7 @@ RSpec.describe Taggable, "working w/ES" do
             )
             expect(search['hits']['hits'].size).to eq 1
             a_doc = search['hits']['hits'][0]['_source']
-            expect(a_doc['name']).to eq "MAIN-B"
+            expect(a_doc['infra_name']).to eq "MAIN-B"
             expect(search['hits']['hits'][0]['_id'].nil?).to eq false
             document_id = search['hits']['hits'][0]['_id']            
             # find by id and update it w/new tags
