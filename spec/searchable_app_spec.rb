@@ -30,6 +30,15 @@ RSpec.describe Taggable::SearchableApplication do
 
             expect(doc_id).to eq "blah"
         end
+
+        it "save should validate properties" do
+            tag_thing = @factory.manufactureTaggable()
+
+            expect {
+                tag_thing.save
+            }.to raise_error("invalid SearchableApplication -- there must be an application name")
+
+        end
       end
 
 end

@@ -53,7 +53,12 @@ module Taggable
 
         attr_accessor :es_client, :es_index_name
 
+        def valid?
+            return !!@name
+        end
+
         def save
+            raise Exception.new "invalid SearchableApplication -- there must be an application name" if valid? == false
             response = @es_client.index(index: @es_index_name, body: self.as_hash)
             return response[:_id]
         end
