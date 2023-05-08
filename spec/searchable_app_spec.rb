@@ -8,7 +8,6 @@ RSpec.describe Taggable::SearchableApplication do
     end
 
     describe "saving an application should be easy" do
-
         it "can save a model easily" do
             tag_thing = @factory.manufactureTaggable()
 
@@ -39,6 +38,25 @@ RSpec.describe Taggable::SearchableApplication do
             }.to raise_error("invalid SearchableApplication -- there must be an application name")
 
         end
-      end
+    end
+
+    describe "deleting should be straightforward" do
+        it "should delete by id" do
+            tag_thing = @factory.manufactureTaggable()
+
+            mock_client = spy("Elasticsearch::Client")
+            allow(mock_client).to receive(:delete) #.and_return({_id: "blah"})
+            tag_thing.es_client = mock_client
+
+            tag_thing.name = "bluespar"
+            tag_thing.env = "prod"
+
+            doc_id = tag_thing.delete
+
+            expect(mock_client).to have_received(:delete)
+
+            # expect(doc_id).to eq "blah"de
+        end
+    end
 
 end
