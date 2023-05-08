@@ -1,37 +1,27 @@
 
+require 'elasticsearch'
+
 module Taggable
 
     class TaggableFactory
 
-
-        def initialize(connection_properties={})
+        def initialize(connection_properties={}, index_name = "test_tags")
+            @es_client = Elasticsearch::Client.new(log: true, trace: true)
+            @index_name = index_name
         end
 
         def manufactureTaggable
-            Taggable::Application.new()
+            taggable = Taggable::SearchableApplication.new
+            taggable.es_client = @es_client
+            taggable.es_index_name = @index_name
+            return taggable
         end
 
     end
 
-    class Application
+    class Application 
         
         attr_accessor :name, :env, :infra_type, :infra_name, :tags, :props
-
-        
-        # def initialize(application, environment, item=nil, name=nil, tags=[], properties={})
-        #     @name = application
-        #     @env = environment
-        #     @infra_type = item
-        #     @infra_name = name
-        #     @tags = tags
-        #     @props = properties
-        # end
-
-
-        def save()
-        end
-
-        
 
         def as_hash
             document = {
@@ -57,6 +47,17 @@ module Taggable
         def as_document
             as_hash().to_json()
         end
+    end
+
+    class SearchableApplication < Taggable::Application
+
+        attr_accessor :es_client, :es_index_name
+
+        def save
+            response = @es_client.index(index: @es_index_name, body: self.as_hash)
+            return response[:_id]
+        end
+        
     end
 
 end

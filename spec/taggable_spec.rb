@@ -10,8 +10,7 @@ RSpec.describe Taggable::Application do
     end
 
     describe "a Taggable thing as a model" do
-  
-     
+       
       it "can represent infrastructure" do
         tag_thing = @factory.manufactureTaggable()
         tag_thing.name = "bluespar"
@@ -23,7 +22,6 @@ RSpec.describe Taggable::Application do
         expect(tag_thing.infra_name).to eq "MAIN"
       end
 
-
       it "can represent infrastructure items with properties" do
         tags = ["FIT", "expired", "SEV0"]
         properties = {:vul_sev => "high", :service_type => "SPS" }
@@ -33,7 +31,7 @@ RSpec.describe Taggable::Application do
         tag_thing.props = properties
         expect(tag_thing.tags.size).to eq 3
         expect(tag_thing.tags).to eq ["FIT", "expired", "SEV0"]   
-        
+
         expect(tag_thing.props.size).to eq 2
         tmp_hsh = {:vul_sev => "high", :service_type => "SPS" }
         expect(tag_thing.props).to eq tmp_hsh
@@ -66,7 +64,6 @@ RSpec.describe Taggable::Application do
 
         a_json_string = tag_thing.as_document
         parsed = JSON.parse(a_json_string)
-        puts parsed
         expect(parsed["application"]).to eq "bluespar"
         expect(parsed["environment"]).to eq "prod"
         expect(parsed["item_type"]).to eq "cluster"
