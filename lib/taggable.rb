@@ -10,14 +10,13 @@ module Taggable
         def initialize(connection_properties={}, index_name = "test_tags")
             @es_client = Elasticsearch::Client.new(log: true, trace: true)
             @index_name = index_name
+           
         end
 
         def taggableInstance
             Taggable::SearchableApplication.es_client = @es_client
             Taggable::SearchableApplication.es_index_name = @index_name
             taggable = Taggable::SearchableApplication.new
-            # taggable.es_client = @es_client
-            # taggable.es_index_name = @index_name
             return taggable
         end
 
@@ -78,46 +77,50 @@ module Taggable
         def save
             raise Exception.new "invalid SearchableApplication -- there must be an application name" if valid? == false
             response = es_client.index(index: es_index_name, body: self.as_hash)
-            return response[:_id]
+            return response['_id']
         end
         
         # must provide app and env
         def delete
             raise Exception.new "cannot delete w/o name and env" if valid? == false
-            taggable = find_by_name_and_env(@name, @env)
+            taggable = Taggable::SearchableApplication.find_by_name_and_env(@name, @env)
             es_client.delete(index: es_index_name, id: taggable.es_doc_id)
         end
 
         # This should be a class method but then how does it get connection info?
-        def find_by_name_and_env(application_name, environment)
-           result =  es_client.search(index: es_index_name, 
-                body: { 
-                    query: { 
-                        bool: {
-                            must: [
-                                { match: { environment: "#{environment}" } },
-                                { match: { application: "#{application_name}" } }
-                            ]
+        def self.find_by_name_and_env(application_name, environment)
+            # puts "I am what? #{self.inspect}"
+            result =  es_client.search(index: es_index_name, 
+                    body: { 
+                        query: { 
+                            bool: {
+                                must: [
+                                    { match: { environment: "#{environment}" } },
+                                    { match: { application: "#{application_name}" } }
+                                ]
+                            }
                         }
                     }
-                }
-            )
-            if result['hits']['hits'].size > 0
-                return taggable_from_es_response(result['hits']['hits'][0])
-            else
-                nil
-            end
+                )
+                if result['hits']['hits'].size > 0
+                    return taggable_from_es_response(result['hits']['hits'][0])
+                else
+                    nil
+                end
         end
         
-        def taggable_from_es_response(source_response)
-            @es_doc_id = source_response['_id']
-            @name = source_response['_source']['application']
-            @env = source_response['_source']['enviornment']
-            @infra_type = source_response['_source']['infra_type']
-            @infra_name = source_response['_source']['infra_name']
-            @tags = source_response['_source']['tags']
-            @props = source_response['_source']['props']
-            return self
+        def self.taggable_from_es_response(source_response)
+            taggable = Taggable::SearchableApplication.new
+            taggable.es_doc_id = source_response['_id']
+            taggable.name = source_response['_source']['application']
+            taggable.env = source_response['_source']['environment']
+            taggable.infra_type = source_response['_source']['infra_type']
+            taggable.infra_name = source_response['_source']['infra_name']
+            taggable.tags = source_response['_source']['tags']
+            taggable.props = source_response['_source']['properties']
+            # taggable.es_client = self.es_client
+            # taggable.es_index_name = self.es_index_name
+            return taggable
         end
     end
 

@@ -11,7 +11,7 @@ RSpec.describe Taggable::SearchableApplication do
         it "can save a model easily" do
 
             mock_client = spy("Elasticsearch::Client")
-            allow(mock_client).to receive(:index).and_return({_id: "blah"})
+            allow(mock_client).to receive(:index).and_return({'_id' => "blah"})
 
             factory = Taggable::TaggableFactory.new()
             # Taggable::SearchableApplication.es_client = mock_client
@@ -113,7 +113,8 @@ RSpec.describe Taggable::SearchableApplication do
             factory.es_client = mock_client
             tag_thing = factory.taggableInstance()
 
-            result = tag_thing.find_by_name_and_env "bluespar", "test"
+
+            result = Taggable::SearchableApplication.find_by_name_and_env "bluespar", "test"
             expect(result.name).to eq "bluespar" 
             expect(result.es_doc_id).to eq "a_test_id"
         end
