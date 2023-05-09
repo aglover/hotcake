@@ -20,7 +20,7 @@ RSpec.describe Taggable, "working w/ES" do
             )
 
             factory = Taggable::TaggableFactory.new()
-            a_cluster = factory.manufactureTaggable()
+            a_cluster = factory.taggableInstance()
             a_cluster.name = "bluespar"
             a_cluster.env = "test"
             a_cluster.infra_type = "cluster"
@@ -40,7 +40,7 @@ RSpec.describe Taggable, "working w/ES" do
     describe "connecting and indexing a document" do
         it "as document works but it might be more efficient to do hash" do
             factory = Taggable::TaggableFactory.new()
-            tagged_cluser = factory.manufactureTaggable()
+            tagged_cluser = factory.taggableInstance()
             tagged_cluser.name = "bluespar"
             tagged_cluser.env = "SEG"
             tagged_cluser.infra_type = "cluster"
@@ -52,7 +52,7 @@ RSpec.describe Taggable, "working w/ES" do
 
         it "must be a hash to index" do
             factory = Taggable::TaggableFactory.new()
-            tagged_cluser = factory.manufactureTaggable()
+            tagged_cluser = factory.taggableInstance()
             tagged_cluser.name = "spinnaker"
             tagged_cluser.env = "prod"
             tagged_cluser.infra_type = "cluster"
@@ -145,7 +145,7 @@ RSpec.describe Taggable, "working w/ES" do
         it "searching by tags should result in two" do
 
             factory = Taggable::TaggableFactory.new()
-            tagged_cluster = factory.manufactureTaggable()
+            tagged_cluster = factory.taggableInstance()
             tagged_cluster.name = "bluespar"
             tagged_cluster.env = "int"
             tagged_cluster.infra_type = "cluster"

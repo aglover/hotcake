@@ -12,7 +12,7 @@ RSpec.describe Taggable::Application do
     describe "a Taggable thing as a model" do
        
       it "can represent infrastructure" do
-        tag_thing = @factory.manufactureTaggable()
+        tag_thing = @factory.taggableInstance()
         tag_thing.name = "bluespar"
         tag_thing.env = "prod"
         tag_thing.infra_type = "cluster"
@@ -25,7 +25,7 @@ RSpec.describe Taggable::Application do
       it "can represent infrastructure items with properties" do
         tags = ["FIT", "expired", "SEV0"]
         properties = {:vul_sev => "high", :service_type => "SPS" }
-        tag_thing = @factory.manufactureTaggable()
+        tag_thing = @factory.taggableInstance()
         tag_thing.tags = tags
         
         tag_thing.props = properties
@@ -40,7 +40,7 @@ RSpec.describe Taggable::Application do
 
     describe "a taggable thing can be a hash" do
       it "can represent itself as a hash (i.e. for es)" do
-        tag_thing = @factory.manufactureTaggable()
+        tag_thing = @factory.taggableInstance()
         tag_thing.name = "bluespar"
         tag_thing.env = "prod"
         a_hash = tag_thing.as_hash
@@ -54,7 +54,7 @@ RSpec.describe Taggable::Application do
     describe "a taggable thing can be a document too" do
 
       it "can represent itself as a document with optional attributes and tags and properties" do
-        tag_thing = @factory.manufactureTaggable()
+        tag_thing = @factory.taggableInstance()
         tag_thing.name = "bluespar"
         tag_thing.env = "prod"
         tag_thing.infra_type = "cluster"
