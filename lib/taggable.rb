@@ -54,19 +54,6 @@ module Taggable
 
     class SearchableApplication < Taggable::Application
 
-        class << self
-            attr_accessor :es_client, :es_index_name
-        end
-
-        def es_client
-            self.class.es_client
-        end
-
-        def es_index_name
-            self.class.es_index_name
-        end
-
-        # :es_client, :es_index_name,
         attr_accessor :es_doc_id
 
         def valid?
@@ -86,11 +73,60 @@ module Taggable
             taggable = Taggable::SearchableApplication.find_by_name_and_env(@name, @env)
             es_client.delete(index: es_index_name, id: taggable.es_doc_id)
         end
+        
+        def es_client
+            self.class.es_client
+        end
 
-        # This should be a class method but then how does it get connection info?
-        def self.find_by_name_and_env(application_name, environment)
-            # puts "I am what? #{self.inspect}"
-            result =  es_client.search(index: es_index_name, 
+        def es_index_name
+            self.class.es_index_name
+        end
+
+        class << self 
+
+            attr_accessor :es_client, :es_index_name
+
+            def find_by_tags(tags=[])
+                result = es_client.search(index: es_index_name, 
+                    body: { 
+                        query: { terms: { tags: tags } }
+                    }
+                )
+                if result['hits']['hits'].size > 0
+                    docs = []
+                    result['hits']['hits'].each { | doc |
+                        docs << taggable_from_es_response(doc)
+                    }
+                    return docs
+                else
+                    return []
+                end
+            end
+
+            def find_by_properties(props={})
+                match_queries = []
+                props.each { |key, value| 
+                    match_queries <<  { match: { "properties.#{key}" => "#{value}" }}
+                }
+
+                result = es_client.search(index: es_index_name, 
+                    body: { 
+                        query: { bool: { must: match_queries } }
+                    }
+                )
+                if result['hits']['hits'].size > 0
+                    docs = []
+                    result['hits']['hits'].each { | doc |
+                        docs << taggable_from_es_response(doc)
+                    }
+                    return docs
+                else
+                    return []
+                end
+            end
+
+            def find_by_name_and_env(application_name, environment)
+                result =  es_client.search(index: es_index_name, 
                     body: { 
                         query: { 
                             bool: {
@@ -105,22 +141,21 @@ module Taggable
                 if result['hits']['hits'].size > 0
                     return taggable_from_es_response(result['hits']['hits'][0])
                 else
-                    nil
+                    return nil
                 end
-        end
-        
-        def self.taggable_from_es_response(source_response)
-            taggable = Taggable::SearchableApplication.new
-            taggable.es_doc_id = source_response['_id']
-            taggable.name = source_response['_source']['application']
-            taggable.env = source_response['_source']['environment']
-            taggable.infra_type = source_response['_source']['infra_type']
-            taggable.infra_name = source_response['_source']['infra_name']
-            taggable.tags = source_response['_source']['tags']
-            taggable.props = source_response['_source']['properties']
-            # taggable.es_client = self.es_client
-            # taggable.es_index_name = self.es_index_name
-            return taggable
+            end
+            
+            def taggable_from_es_response(source_response)
+                taggable = Taggable::SearchableApplication.new
+                taggable.es_doc_id = source_response['_id']
+                taggable.name = source_response['_source']['application']
+                taggable.env = source_response['_source']['environment']
+                taggable.infra_type = source_response['_source']['infra_type']
+                taggable.infra_name = source_response['_source']['infra_name']
+                taggable.tags = source_response['_source']['tags']
+                taggable.props = source_response['_source']['properties']
+                return taggable
+            end
         end
     end
 
