@@ -174,6 +174,49 @@ RSpec.describe Taggable::SearchableApplication do
             results = Taggable::SearchableApplication.find_by_properties({"owner" => "GPS"})
             expect(results.size).to eq 1
         end
+    end
 
+    describe "updating a taggable" do
+
+        it "should allow an instance to update itself" do
+            @doc_id_update = "_blah_"
+            mock_client = spy("Elasticsearch::Client")
+            allow(mock_client).to receive(:index).and_return({'_id' => @doc_id_update})
+
+            factory = Taggable::TaggableFactory.new()
+            factory.es_client = mock_client
+
+            tag_thing = factory.taggableInstance()
+            tag_thing.name = "bluespar"
+            tag_thing.env = "prod"
+            tag_thing.infra_type = "cluster"
+            tag_thing.infra_name = "MAIN"
+            doc_id = tag_thing.save
+
+            expect(mock_client).to have_received(:index)
+            expect(doc_id).to eq @doc_id_update
+
+            tag_thing.infra_name = "SEG"
+            
+            tag_thing.update
+
+            expect(mock_client).to have_received(:update)
+        end
+
+        it "shouldn't permit updating a non-saved document"  do
+            mock_client = spy("Elasticsearch::Client")
+            factory = Taggable::TaggableFactory.new()
+            factory.es_client = mock_client
+
+            tag_thing = factory.taggableInstance()
+            tag_thing.name = "bluespar"
+            tag_thing.env = "prod"
+            tag_thing.infra_type = "cluster"
+            tag_thing.infra_name = "MAIN"
+            
+            expect {
+                tag_thing.update    
+            }.to raise_error("this instance lacks an ID - have you saved it?") 
+        end
     end
 end

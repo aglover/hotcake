@@ -64,9 +64,18 @@ module Taggable
         def save
             raise Exception.new "invalid SearchableApplication -- there must be an application name" if valid? == false
             response = es_client.index(index: es_index_name, body: self.as_hash)
-            return response['_id']
+            self.es_doc_id = response['_id']
+            return self.es_doc_id
         end
         
+        # there must be an id
+        def update
+            raise Exception.new "this instance lacks an ID - have you saved it?" if self.es_doc_id.nil?
+            es_client.update(index: es_index_name, id: self.es_doc_id, 
+                body: { doc: self.as_hash() }
+            )
+        end
+
         # must provide app and env
         def delete
             raise Exception.new "cannot delete w/o name and env" if valid? == false
@@ -92,15 +101,7 @@ module Taggable
                         query: { terms: { tags: tags } }
                     }
                 )
-                if result['hits']['hits'].size > 0
-                    docs = []
-                    result['hits']['hits'].each { | doc |
-                        docs << taggable_from_es_response(doc)
-                    }
-                    return docs
-                else
-                    return []
-                end
+                return result['hits']['hits'].size > 0 ? build_response(result) : []
             end
 
             def find_by_properties(props={})
@@ -114,17 +115,10 @@ module Taggable
                         query: { bool: { must: match_queries } }
                     }
                 )
-                if result['hits']['hits'].size > 0
-                    docs = []
-                    result['hits']['hits'].each { | doc |
-                        docs << taggable_from_es_response(doc)
-                    }
-                    return docs
-                else
-                    return []
-                end
+                return result['hits']['hits'].size > 0 ? build_response(result) : []
             end
 
+            # there can only be one! 
             def find_by_name_and_env(application_name, environment)
                 result =  es_client.search(index: es_index_name, 
                     body: { 
@@ -145,6 +139,14 @@ module Taggable
                 end
             end
             
+            def build_response(es_response_hash)
+                docs = []
+                es_response_hash['hits']['hits'].each { | doc |
+                    docs << taggable_from_es_response(doc)
+                }
+                return docs
+            end
+
             def taggable_from_es_response(source_response)
                 taggable = Taggable::SearchableApplication.new
                 taggable.es_doc_id = source_response['_id']
