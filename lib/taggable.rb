@@ -8,7 +8,7 @@ module Taggable
         attr_accessor :es_client, :es_index_name
 
         def initialize(connection_properties={}, index_name = "test_tags")
-            @es_client = Elasticsearch::Client.new(log: true, trace: true)
+            @es_client = Elasticsearch::Client.new(log: true, trace: false)
             @index_name = index_name
            
         end
