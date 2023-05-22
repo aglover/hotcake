@@ -1,6 +1,9 @@
 require "sinatra"
 require "sinatra/json"
-require File.expand_path(File.dirname(__FILE__) + '/taggable')
+require "sinatra/config_file"
+require File.expand_path(File.dirname(__FILE__) + "/taggable")
+
+config_file File.expand_path(File.dirname(__FILE__) + "../conf/config.yml")
 
 configure do
   @factory = Taggable::TaggableFactory.new()

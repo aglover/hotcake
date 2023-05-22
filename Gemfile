@@ -9,3 +9,4 @@ gem "elasticsearch", "~> 8.7"
 
 gem "sinatra"
 gem "sinatra-contrib"
+gem "puma"

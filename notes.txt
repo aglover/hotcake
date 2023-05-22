@@ -27,3 +27,14 @@ Tags need a keyword mapping
   * GET /applications/:environment?tags=:comma_delimted_tags treturns all applications in that env w/tags
   * GET /applications/:environment?property_name=property_value returns all applications in those props (i.e. name=andy)
 
+To do:
+ * slides/story
+ ** no LLMs used
+ ** problem - tag various infra assets (AWS has come along way, but NFLX has more than just AWS)
+ ** OSS vs internal 
+ ** didn't want to support ES so rewrote into C*
+
+* write up a markdown readme
+* come up w/URLs to show API during demo
+* implement POST (new taggable) and PUT (update one)
+

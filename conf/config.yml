@@ -1,2 +1,8 @@
 
-es_host: localhost
+development: 
+  es_host: localhost
+  es_index_name: "test_tags"
+
+production:
+  es_host: localhost
+  es_index_name: "tags"
