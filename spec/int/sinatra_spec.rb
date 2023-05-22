@@ -6,7 +6,7 @@ require 'json'
 require File.expand_path(File.dirname(__FILE__) + '/../../lib/tag_app')
 require File.expand_path(File.dirname(__FILE__) + '/../../lib/taggable')
 
-RSpec.describe "Tag Application" do
+RSpec.describe "Tag Sinatra Application" do
     include Rack::Test::Methods
   
     def app
@@ -27,24 +27,21 @@ RSpec.describe "Tag Application" do
     end
 
     after(:each) do
-      factory = Taggable::TaggableFactory.new()
-      tag_thing = factory.taggableInstance()
-      tag_thing.name = "bluespar"
-      tag_thing.env = "prod"
-      tag_thing.delete
-      sleep 1
-      begin
-        factory = Taggable::TaggableFactory.new()
-        tag_thing = factory.taggableInstance()
-        tag_thing.name = "flapjack"
-        tag_thing.env = "int"
-        tag_thing.delete
-      rescue Exception 
-        # ignore
+      tuples = [{name: "bluespar", env: "prod"}, {name: "flapjack", env: "int"}]
+      tuples.each do  |hash|
+        begin
+          factory = Taggable::TaggableFactory.new()
+          tag_thing = factory.taggableInstance()
+          tag_thing.name = hash[:name]
+          tag_thing.env = hash[:env]
+          tag_thing.delete
+        rescue Exception 
+          # ignore
+        end
       end
     end
 
-    describe "write requests" do
+    describe "POST requests" do
 
       it "should support adding a tag to a cluster for a new application" do
         post_tags = {"tags" => ["vul", "fit"] }
@@ -85,8 +82,18 @@ RSpec.describe "Tag Application" do
         expect(last_response).to be_ok
         expect(last_response.headers['Content-Type']).to eq "application/json"
         hash = JSON.parse(JSON.parse (last_response.body))
-        puts "\n\n\n\n\n\n\n\n\n\n\n hash is #{hash}\n\n\n\n\n\n\n\n\n\n"
         expect(hash['properties'].size).to eq 2
+      end
+
+      it "should support adding a property and a tag to a cluster for an existing application" do
+        post_data = {"properties" => {"service_name" => "spinnaker"}, "tags" => ["third_tag"] } 
+        post "/applications/prod/bluespar/cluster/MAIN", post_data.to_json
+        
+        expect(last_response).to be_ok
+        expect(last_response.headers['Content-Type']).to eq "application/json"
+        hash = JSON.parse(JSON.parse (last_response.body))
+        expect(hash['properties'].size).to eq 2
+        expect(hash['tags'].size).to eq 3
       end
 
       it "should support deduplicating tags" do
@@ -100,7 +107,7 @@ RSpec.describe "Tag Application" do
       end
     end
 
-    describe "read requests" do
+    describe "GET requests" do
       it "responds with an application document from a specific environment" do
         get "/applications/prod/bluespar"
         expect(last_response).to be_ok
@@ -140,6 +147,14 @@ RSpec.describe "Tag Application" do
       it "responds 404 for all apps as it's not defined" do
         get "/applications"
         expect(last_response.status).to eq 404
+      end
+    end
+
+    describe "DELETE requests" do
+      it "should support deleting by name and environment" do
+        delete "/applications/prod/bluespar"
+        expect(last_response).to be_ok
+        expect(last_response.headers['Content-Type']).to eq "application/json"
       end
     end
   end

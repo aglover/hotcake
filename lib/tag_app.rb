@@ -10,29 +10,34 @@ before do
   @tag_thing = @factory.taggableInstance()
 end
 
+delete "/applications/:environment/:app_name" do |env, app|
+  taggable_result = Taggable::SearchableApplication.find_by_name_and_env app, env
+  taggable_result.delete
+  json taggable_result.as_document
+end
+
 post "/applications/:environment/:app_name/:infra_type/:intra_name" do
   # check for existing app + env
-  taggable_result = Taggable::SearchableApplication.find_by_name_and_env params["app_name"], params["environment"]
+  taggable = Taggable::SearchableApplication.find_by_name_and_env params["app_name"], params["environment"]
   posted_data = JSON.parse(request.body.read)
-  if taggable_result.nil? 
-    # create it 
+  if taggable.nil? # create it 
     @tag_thing.name = params["app_name"]
     @tag_thing.env = params["environment"]
     @tag_thing.infra_type = params["infra_type"]
     @tag_thing.infra_name = params["intra_name"]
     @tag_thing.tags = posted_data["tags"]
     @tag_thing.props = posted_data["properties"]
-    doc_id = @tag_thing.save
+    @tag_thing.save
     json @tag_thing.as_document
   else
     unless posted_data["tags"].nil?
-      taggable_result.tags = (taggable_result.tags + posted_data["tags"]).uniq
+      taggable.tags = taggable.tags.nil? ? post_data["tags"] : (taggable.tags + posted_data["tags"]).uniq
     end
     unless posted_data["properties"].nil? 
-      taggable_result.props = taggable_result.props.merge(posted_data["properties"])
+      taggable.props = taggable.props.nil? ? posted_data["properties"] : taggable.props.merge(posted_data["properties"])
     end
-    taggable_result.update
-    json taggable_result.as_document
+    taggable.update
+    json taggable.as_document
   end
 end
 

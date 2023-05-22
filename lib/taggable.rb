@@ -10,14 +10,12 @@ module Taggable
         def initialize(connection_properties={}, index_name = "test_tags")
             @es_client = Elasticsearch::Client.new(log: true, trace: false)
             @index_name = index_name
-           
         end
 
         def taggableInstance
             Taggable::SearchableApplication.es_client = @es_client
             Taggable::SearchableApplication.es_index_name = @index_name
-            taggable = Taggable::SearchableApplication.new
-            return taggable
+            return Taggable::SearchableApplication.new
         end
 
     end
