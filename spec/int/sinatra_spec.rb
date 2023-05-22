@@ -13,7 +13,6 @@ RSpec.describe "Tag Application" do
       Sinatra::Application
     end
   
-
     before(:each) do
       factory = Taggable::TaggableFactory.new()
       tag_thing = factory.taggableInstance()
@@ -33,47 +32,114 @@ RSpec.describe "Tag Application" do
       tag_thing.name = "bluespar"
       tag_thing.env = "prod"
       tag_thing.delete
+      sleep 1
+      begin
+        factory = Taggable::TaggableFactory.new()
+        tag_thing = factory.taggableInstance()
+        tag_thing.name = "flapjack"
+        tag_thing.env = "int"
+        tag_thing.delete
+      rescue Exception 
+        # ignore
+      end
     end
 
-    it "responds with an application document from a specific environment" do
-      get "/applications/prod/bluespar"
-      expect(last_response).to be_ok
-      expect(last_response.headers['Content-Type']).to eq "application/json"
-      hash = JSON.parse(JSON.parse (last_response.body))
-      expect(hash['application']).to eq "bluespar"
-      expect(hash['infra_type']).to eq "cluster"
+    describe "write requests" do
+
+      it "should support adding a tag to a cluster for a new application" do
+        post_tags = {"tags" => ["vul", "fit"] }
+        post "/applications/int/flapjack/cluster/MAIN", post_tags.to_json
+        
+        expect(last_response).to be_ok
+        expect(last_response.headers["Content-Type"]).to eq "application/json"
+        hash = JSON.parse(JSON.parse (last_response.body))
+        expect(hash['tags'].size).to eq 2
+        expect(hash['environment']).to eq "int"
+      end
+
+      it "should support adding properties to a cluster for a new application" do
+        post_properties = {"properties" => {"email" => "dl@acme.com" } }
+        post "/applications/int/flapjack/cluster/MAIN", post_properties.to_json
+        
+        expect(last_response).to be_ok
+        expect(last_response.headers["Content-Type"]).to eq "application/json"
+        hash = JSON.parse(JSON.parse (last_response.body))
+        expect(hash['properties'].size).to eq 1
+        expect(hash['properties']['email']).to eq "dl@acme.com"
+      end
+
+      it "should support adding a tag to a cluster for an existing application" do
+        post_tags = {"tags" => ["third_tag"] }
+        post "/applications/prod/bluespar/cluster/MAIN", post_tags.to_json
+        
+        expect(last_response).to be_ok
+        expect(last_response.headers['Content-Type']).to eq "application/json"
+        hash = JSON.parse(JSON.parse (last_response.body))
+        expect(hash['tags'].size).to eq 3
+      end
+
+      it "should support adding a property to a cluster for an existing application" do
+        post_properties = {"properties" => {"fit_purpose" => "int_testing"} }
+        post "/applications/prod/bluespar/cluster/MAIN", post_properties.to_json
+        
+        expect(last_response).to be_ok
+        expect(last_response.headers['Content-Type']).to eq "application/json"
+        hash = JSON.parse(JSON.parse (last_response.body))
+        puts "\n\n\n\n\n\n\n\n\n\n\n hash is #{hash}\n\n\n\n\n\n\n\n\n\n"
+        expect(hash['properties'].size).to eq 2
+      end
+
+      it "should support deduplicating tags" do
+        post_tags = {"tags" => ['deprecated'] }
+        post "/applications/prod/bluespar/cluster/MAIN", post_tags.to_json
+        
+        expect(last_response).to be_ok
+        expect(last_response.headers['Content-Type']).to eq "application/json"
+        hash = JSON.parse(JSON.parse (last_response.body))
+        expect(hash['tags'].size).to eq 2
+      end
     end
 
-    it "responds with application docs matching tags" do
-      get "/applications?tags=deprecated"
-      expect(last_response).to be_ok
-      expect(last_response.headers['Content-Type']).to eq "application/json"
-      array_res = JSON.parse(JSON.parse (last_response.body))
-      expect(array_res.size).to eq 1
-      json_res = JSON.parse(array_res[0])
-      expect(json_res['application']).to eq "bluespar"
-      expect(json_res['infra_type']).to eq "cluster"
-    end
+    describe "read requests" do
+      it "responds with an application document from a specific environment" do
+        get "/applications/prod/bluespar"
+        expect(last_response).to be_ok
+        expect(last_response.headers['Content-Type']).to eq "application/json"
+        hash = JSON.parse(JSON.parse (last_response.body))
+        expect(hash['application']).to eq "bluespar"
+        expect(hash['infra_type']).to eq "cluster"
+      end
 
-    it "responds with application docs matching properties" do
-      get "/applications?stack=test"
-      expect(last_response).to be_ok
-      expect(last_response.headers['Content-Type']).to eq "application/json"
-      array_res = JSON.parse(JSON.parse (last_response.body))
-      expect(array_res.size).to eq 1
-      json_res = JSON.parse(array_res[0])
-      expect(json_res['application']).to eq "bluespar"
-      expect(json_res['infra_type']).to eq "cluster"
-    end
+      it "responds with application docs matching tags" do
+        get "/applications?tags=deprecated"
+        expect(last_response).to be_ok
+        expect(last_response.headers['Content-Type']).to eq "application/json"
+        array_res = JSON.parse(JSON.parse (last_response.body))
+        expect(array_res.size).to eq 1
+        json_res = JSON.parse(array_res[0])
+        expect(json_res['application']).to eq "bluespar"
+        expect(json_res['infra_type']).to eq "cluster"
+      end
 
-    it "responds 404 for routes not defined" do
-      get "/applications/prod"
-      expect(last_response.status).to eq 404
-    end
+      it "responds with application docs matching properties" do
+        get "/applications?stack=test"
+        expect(last_response).to be_ok
+        expect(last_response.headers['Content-Type']).to eq "application/json"
+        array_res = JSON.parse(JSON.parse (last_response.body))
+        expect(array_res.size).to eq 1
+        json_res = JSON.parse(array_res[0])
+        expect(json_res['application']).to eq "bluespar"
+        expect(json_res['infra_type']).to eq "cluster"
+      end
 
-    it "responds 404 for all apps as it's not defined" do
-      get "/applications"
-      expect(last_response.status).to eq 404
+      it "responds 404 for routes not defined" do
+        get "/applications/prod"
+        expect(last_response.status).to eq 404
+      end
+
+      it "responds 404 for all apps as it's not defined" do
+        get "/applications"
+        expect(last_response.status).to eq 404
+      end
     end
-    
   end

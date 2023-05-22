@@ -61,6 +61,7 @@ module Taggable
         end
 
         # must have at least an application name and env
+        # todo evenutally make this method smart enough to update an existing app + env
         def save
             raise Exception.new "invalid SearchableApplication -- there must be an application name" if valid? == false
             response = es_client.index(index: es_index_name, body: self.as_hash)

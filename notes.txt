@@ -36,5 +36,6 @@ To do:
 
 * write up a markdown readme
 * come up w/URLs to show API during demo
-* implement POST (new taggable) and PUT (update one)
+* implement POST (new taggable), PUT (update one), and DELETE
+
 
