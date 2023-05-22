@@ -1,0 +1,11 @@
+{
+    "application" : "bluespar", 
+    "environment" : "prod", 
+    "infra_type" : "cluster", 
+    "infra_name" : "MAIN-B",
+    "tags" : ["FIT", "SEC-2100"],
+    "properties" : {
+        "stack" :"test",
+        "owner" :"GPS"
+    }
+}

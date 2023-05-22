@@ -39,3 +39,18 @@ To do:
 * implement POST (new taggable), PUT (update one), and DELETE
 
 
+Retrieve all documents
+ * curl -X GET 'http://localhost:9200/test_tags/_search?pretty=true'
+ 
+Seed w/one document
+ * curl -XPOST -H "Content-Type: application/json" 'http://localhost:9200/test_tags/_doc' --data @etc/init-seed-1.json
+ * curl -XPOST -H "Content-Type: application/json" 'http://localhost:9200/test_tags/_doc?pretty=true' --data @etc/init-seed-2.json
+
+Get total count of docs
+ * curl -XGET 'http://localhost:9200/test_tags/_count?pretty=true'
+
+
+Using the app
+* http://localhost:4567/applications/prod/front50
+* http://localhost:4567/applications?tags=SEC-2100
+* http://localhost:4567/applications?stack=test

@@ -58,7 +58,7 @@ end
 # returns a collection
 def find_all_by(name, value)
   taggable_results = Taggable::SearchableApplication.public_send(name, value)
-  return json "#{taggable_results.map(&:as_document)}"
+  json "#{taggable_results.map(&:as_document)}".gsub('\\', '')
 end
 
 get "/applications/:environment/:app_name" do |env, app|

@@ -1,0 +1,10 @@
+{
+    "application" : "front50", 
+    "environment" : "prod", 
+    "infra_type" : "cluster", 
+    "infra_name" : "MAIN",
+    "tags" : ["SEC-2100"],
+    "properties" : {
+        "stack" : "test"
+    }
+}

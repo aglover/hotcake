@@ -1,0 +1,7 @@
+{
+    "application" : "hootch", 
+    "environment" : "prod", 
+    "infra_type" : "ASG", 
+    "infra_name" : "stress-test",
+    "tags" : ["deprecated"]
+}
