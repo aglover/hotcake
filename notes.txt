@@ -2,6 +2,7 @@ ElasticSearch resources
  * https://logz.io/blog/elasticsearch-tutorial/
  * w/docker: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
  * https://levelup.gitconnected.com/how-to-run-elasticsearch-8-on-docker-for-local-development-401fd3fff829
+ * https://www.bmc.com/blogs/elasticsearch-commands/
 
 
 
