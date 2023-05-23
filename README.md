@@ -26,7 +26,7 @@ In the above document,`tags` are simply an array of values, while `properties` a
 The API is fairly straightforward. For instance, to create tags for a cluster called "MAIN" associated with an application named "flapjack" in the "pci" environment, simply HTTP POST tags in the following JSON document form:
 
 ```
-{"tags": ["vul", "fit"] }
+{"tags" : ["vul", "fit"]}
 ```
 
 to the following URL `http://<hostname:port>/applications/pci/flapjack/cluster/MAIN`. 
@@ -34,7 +34,7 @@ to the following URL `http://<hostname:port>/applications/pci/flapjack/cluster/M
 As you can see the URL pattern is essentially `/applications/<env>/<app name>/<infra type>/<infra type name>`. Likewise, if you want to associate a property to this same cluster, you would post a JSON document as follows:
 
 ```
-{"properties": {"owner":"dl@acme.com"} }
+{"properties" : {"owner":"dl@acme.com"}}
 ```
 
 ## Running Hotcake
@@ -68,7 +68,7 @@ http://localhost:4567/applications/prod/hootch/cluster/default
 With this JSON body: 
 
 ```
-{"properties": {"owner":"anyone@acme.corp" }}
+{"properties" : {"owner":"anyone@acme.corp" }}
 ```
 
 You can do this via CURL or something like POSTMAN. Then do an HTTP GET like so:
@@ -80,13 +80,13 @@ http://localhost:4567/applications/prod/hootch
 And you should see:
 
 ```
-"{
-    "application":"hootch",
-    "environment":"prod",
-    "infra_type":"cluster",
-    "infra_name":"default",
-    "properties":{"owner":"anyone@acme.corp"}
-}"
+{
+    "application" : "hootch",
+    "environment" : "prod",
+    "infra_type" : "cluster",
+    "infra_name" : "default",
+    "properties" : {"owner":"anyone@acme.corp"}
+}
 ```
 
 Of course, the whole point of Hotcake is to associate meta-data with infrastructure assets; accordingly, finding matching documents is where things shine. For instance, try these two POSTS:
@@ -98,7 +98,7 @@ http://localhost:4567/applications/prod/gusto/cluster/TEST-1
 With 
 
 ```
-{"tags": ["fit", "deprecated"] }
+{"tags" : ["fit", "deprecated"]}
 ```
 
 Followed by:
@@ -109,7 +109,7 @@ http://localhost:4567/applications/prod/aye/cluster/MAIN-B
 
 With
 ```
-{"tags": ["fit"] }
+{"tags" : ["fit"]}
 ```
 
 Next, perform an HTTP GET against this url: `http://localhost:4567/applications?tags=fit` and you should see both application's clusters returned (i.e. `MAIN-B` and `TEST-1`). 
