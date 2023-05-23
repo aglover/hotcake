@@ -36,7 +36,14 @@ post "/applications/:environment/:app_name/:infra_type/:intra_name" do
     unless posted_data["properties"].nil? 
       taggable.props = taggable.props.nil? ? posted_data["properties"] : taggable.props.merge(posted_data["properties"])
     end
-    taggable.update
+    
+    if taggable.infra_type == params["infra_type"] && taggable.infra_name == params["intra_name"]
+      taggable.update
+    else
+      taggable.infra_type = params["infra_type"]
+      taggable.infra_name = params["intra_name"]
+      taggable.save
+    end
     json taggable.as_document
   end
 end
@@ -58,7 +65,7 @@ end
 # returns a collection
 def find_all_by(name, value)
   taggable_results = Taggable::SearchableApplication.public_send(name, value)
-  json "#{taggable_results.map(&:as_document)}".gsub('\\', '')
+  json "#{taggable_results.map(&:as_document)}" #.gsub('\\', '')
 end
 
 get "/applications/:environment/:app_name" do |env, app|

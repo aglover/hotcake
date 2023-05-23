@@ -118,6 +118,7 @@ module Taggable
             end
 
             # there can only be one! 
+            # this is INCORRECT - as if you add another infra item a second record is created (which is correct)
             def find_by_name_and_env(application_name, environment)
                 result =  es_client.search(index: es_index_name, 
                     body: { 
